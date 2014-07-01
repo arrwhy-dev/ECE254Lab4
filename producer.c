@@ -51,6 +51,14 @@ int main(int argc, char **argv) {
 
 	pid_t child_pid;
 
+
+	//time before fork
+	struct timeval tv;
+
+	gettimeofday(&tv,NULL);
+	double  t1 = tv.tv_sec + tv.tv_usec/1000000.0;
+
+
 	child_pid = fork();
 
 	if (child_pid != 0) {
@@ -60,6 +68,10 @@ int main(int argc, char **argv) {
 		int counter;
 		for (counter = 0; counter < process_count; ++counter) {
 			int i = (rand() % 80);
+
+			gettimeofday(&tv,NULL);
+			double  t2 = tv.tv_sec + tv.tv_usec/1000000.0;
+
 			if (mq_send(queue_descriptor, (char*) &i, sizeof(int), 0) == -1) {
 				perror("send operation failed");
 			} else {
@@ -74,11 +86,7 @@ int main(int argc, char **argv) {
 		printf("error making the consumer");
 	}
 
-	//printf("parent going to enter wait");
 	printf("parent going to enter wait");
-	//send a message to the consumer.
-
-	//wait on child process before terminating.
 
 	int child_status;
 	wait(&child_status);

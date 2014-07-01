@@ -11,10 +11,11 @@
 #include <stdlib.h>
 #include <mqueue.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>
+#include <time.h>
 #include "producer.h"
-
-
 
 int main(int argc, char **argv) {
 
@@ -26,13 +27,10 @@ int main(int argc, char **argv) {
 	int process_count = atoi(argv[1]);
 	int queue_size = atoi(argv[2]);
 
-	printf("The num of ints to process is %d and the queue size is %d\n",
-			process_count, queue_size);
-
 	mode_t mode = S_IRUSR | S_IWUSR;
 
 	struct mq_attr queue_attributes;
-	char * queue_name = "/mailbox_ece254_ryo_ap";
+	char * queue_name = "/mailbox_ece254_ryo_ap2";
 
 	queue_attributes.mq_maxmsg = queue_size;
 	queue_attributes.mq_msgsize = sizeof(int);
@@ -51,22 +49,24 @@ int main(int argc, char **argv) {
 		printf("queue was opened\n");
 	}
 
-
-	int i = 7;
-	if (mq_send(queue_descriptor, (char*) &i, sizeof(int), 0) == -1) {
-		perror("send operation failed");
-	}else
-	{
-
-		printf("message sent to teh queue\n");
-	}
-
 	pid_t child_pid;
 
 	child_pid = fork();
 
 	if (child_pid != 0) {
-		printf("printing from the parent\n");
+		//printf("printing from the parent\n");
+		srand(time(0));
+
+		int counter;
+		for (counter = 0; counter < process_count; ++counter) {
+			int i = (rand() % 80);
+			if (mq_send(queue_descriptor, (char*) &i, sizeof(int), 0) == -1) {
+				perror("send operation failed");
+			} else {
+				printf("sent value of %i",i);
+			}
+		}
+
 	} else {
 
 		execv("./consumer", argv);
@@ -74,27 +74,32 @@ int main(int argc, char **argv) {
 		printf("error making the consumer");
 	}
 
+	printf("parent going to enter wait");
 	//send a message to the consumer.
 
+	//wait on child process before terminating.
 
+	int child_status;
+	wait(&child_status);
 
-
+	if (WIFEXITED(child_status)) {
+		printf("the child prcess exited normally, with exit cod %d\n",
+				WEXITSTATUS(child_status));
+	} else {
+		printf("child process exited abnormally \n");
+		return 1;
+	}
 
 	if (mq_close(queue_descriptor) == -1) {
 		perror("mq_close failed");
 		exit(2);
 	}
 
-/*
 	if (mq_unlink(queue_name) != 0) {
 		perror("mq_unlink failed");
 		exit(3);
 	}
-*/
 
-
-
-	printf("queue terminated and about to exit producer process");
 	return 0;
 
 }
@@ -109,3 +114,4 @@ int detect_user_error(int argc, char* argv[]) {
 	return 0;
 
 }
+

@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
 			if (mq_send(queue_descriptor, (char*) &i, sizeof(int), 0) == -1) {
 				perror("send operation failed");
 			} else {
-				//printf("sent value of %i",i);
+				printf("sent value of %i", i);
 			}
 		}
 
@@ -75,6 +75,7 @@ int main(int argc, char **argv) {
 	}
 
 	//printf("parent going to enter wait");
+	printf("parent going to enter wait");
 	//send a message to the consumer.
 
 	//wait on child process before terminating.

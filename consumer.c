@@ -60,13 +60,34 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	//printf("consumer has consumed all msgs");
+//printf("consumer has consumed all msgs");
+	printf("queue was opened in consumer\n");
+}
 
-	if (mq_close(qdes) == -1) {
-		perror("mq_close90 failed");
-		exit(2);
+int counter;
+for (counter =0; counter<messages_to_consume;++counter)
+{
+
+	printf("in the consumer for loop\n");
+	int i;
+	if (mq_receive(qdes, (char*) &i, sizeof(int), 0) == -1) {
+		printf("failure to reciee the msg\n");
+		perror("errore retrieveing from the queue");
+		return 1;
+	} else {
+//printf("the value consumed is %i \n", i);
+		printf("%i is consumed\n",i);
+
 	}
+}
 
-	return 0;
+printf("consumer has consumed all msgs");
+
+if (mq_close(qdes) == -1) {
+	perror("mq_close90 failed");
+	exit(2);
+}
+
+return 0;
 
 }

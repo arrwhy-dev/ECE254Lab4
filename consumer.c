@@ -17,8 +17,6 @@
 
 int main(int argc, char **argv) {
 
-	//printf("printing from the consumer\n");
-
 	//lets try to open the queue in the consumer.
 
 	mode_t mode = S_IRUSR | S_IWUSR;
@@ -51,8 +49,8 @@ int main(int argc, char **argv) {
 
 		int i;
 		if (mq_receive(qdes, (char*) &i, sizeof(int), 0) == -1) {
-			printf("failure to reciee the msg\n");
-			perror("errore retrieveing from the queue");
+			printf("failure to recieve the msg\n");
+			perror("error retrieveing from the queue");
 			return 1;
 		} else {
 			printf("%i is consumed\n", i);
@@ -61,7 +59,6 @@ int main(int argc, char **argv) {
 	}
 
 //printf("consumer has consumed all msgs");
-	printf("consumer has consumed all msgs");
 
 	if (mq_close(qdes) == -1) {
 		perror("mq_close90 failed");

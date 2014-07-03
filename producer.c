@@ -14,7 +14,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include <time.h>
+#include <sys/time.h>
 #include "producer.h"
 
 int main(int argc, char **argv) {
@@ -23,6 +23,8 @@ int main(int argc, char **argv) {
 		printf("Invalid arguments\n");
 		return 0;
 	}
+
+	struct timeval tv;
 
 	int process_count = atoi(argv[1]);
 	int queue_size = atoi(argv[2]);
@@ -51,16 +53,12 @@ int main(int argc, char **argv) {
 
 	pid_t child_pid;
 
-
-	//time before fork
-	struct timeval tv;
-
-	gettimeofday(&tv,NULL);
-	double  t1 = tv.tv_sec + tv.tv_usec/1000000.0;
-
+	gettimeofday(&tv, NULL);
+	double t1 = tv.tv_sec + tv.tv_usec / 1000000.0;
+	printf("the value of t1 is %f the tv sec is ", t1);
 
 	child_pid = fork();
-
+	double t2;
 	if (child_pid != 0) {
 		//printf("printing from the parent\n");
 		srand(time(0));
@@ -69,13 +67,13 @@ int main(int argc, char **argv) {
 		for (counter = 0; counter < process_count; ++counter) {
 			int i = (rand() % 80);
 
-			gettimeofday(&tv,NULL);
-			double  t2 = tv.tv_sec + tv.tv_usec/1000000.0;
+			gettimeofday(&tv, NULL);
+			t2 = tv.tv_sec + tv.tv_usec / 1000000.0;
 
 			if (mq_send(queue_descriptor, (char*) &i, sizeof(int), 0) == -1) {
 				perror("send operation failed");
 			} else {
-				printf("sent value of %i", i);
+				//printf("sent value of %i", i);
 			}
 		}
 
@@ -86,14 +84,27 @@ int main(int argc, char **argv) {
 		printf("error making the consumer");
 	}
 
-	printf("parent going to enter wait");
+	//printf("parent going to enter wait");
 
 	int child_status;
 	wait(&child_status);
 
 	if (WIFEXITED(child_status)) {
-		printf("the child prcess exited normally, with exit cod %d\n",
-				WEXITSTATUS(child_status));
+		//printf("the child prcess exited normally, with exit cod %d\n",
+		//	WEXITSTATUS(child_status));
+
+		gettimeofday(&tv, NULL);
+		double t3 = tv.tv_sec + tv.tv_usec / 1000000.0;
+
+		//printf("value of t1 is %d\n",t1);
+		//	printf("value of t2 is %d\n",t2);
+		//printf("value of t2 is %d\n",t3);
+		//double init_time = t2 - t1;
+		//double transmission_time = t3 - t2;
+
+		//printf("Time to initialize system: %d seconds\n", t2 - t1);
+		//printf("Time to transmit data: %d seconds\n", t3 - t2);
+
 	} else {
 		printf("child process exited abnormally \n");
 		return 1;

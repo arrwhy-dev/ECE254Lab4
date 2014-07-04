@@ -14,53 +14,48 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
+#include "common.h"
 
 int main(int argc, char **argv) {
-
-	//lets try to open the queue in the consumer.
-
-	mode_t mode = S_IRUSR | S_IWUSR;
-	struct mq_attr queue_attributes;
 
 	int queue_size = atoi(argv[2]);
 	int messages_to_consume = atoi(argv[1]);
 
-	char * queue_name = "/mailbox_ece254_ryo_ap2";
-
+	struct mq_attr queue_attributes;
 	queue_attributes.mq_maxmsg = queue_size;
 	queue_attributes.mq_msgsize = sizeof(int);
 	queue_attributes.mq_flags = 0;
 
-	mqd_t qdes;
+	mqd_t queue_descriptor;
+	mode_t permissions = S_IRUSR | S_IWUSR;
 
-	qdes = mq_open(queue_name, O_RDONLY, mode, &queue_attributes);
+	queue_descriptor = mq_open(queue_name, O_RDONLY, permissions,
+			&queue_attributes);
 
-	if (qdes == -1) {
+	if (queue_descriptor == -1) {
 		printf("there was an error opening the queue in the consumer");
 		printf("the error is %s \n", strerror(errno));
 		return 1;
-	} else {
-
-		//printf("queue was opened in consumer\n");
 	}
 
-	int counter;
-	for (counter = 0; counter < messages_to_consume; ++counter) {
+	int i;
+	for (i = 0; i < messages_to_consume; ++i) {
 
-		int i;
-		if (mq_receive(qdes, (char*) &i, sizeof(int), 0) == -1) {
-			printf("failure to recieve the msg\n");
+		int msg_to_receive;
+		if (mq_receive(queue_descriptor, (char*) &msg_to_receive, sizeof(int),
+				0) == -1) {
+
+			printf("failed to recieve the msg\n");
 			perror("error retrieveing from the queue");
 			return 1;
+
 		} else {
-			printf("%i is consumed\n", i);
+			printf("%i is consumed\n", msg_to_receive);
 
 		}
 	}
 
-//printf("consumer has consumed all msgs");
-
-	if (mq_close(qdes) == -1) {
+	if (mq_close(queue_descriptor) == -1) {
 		perror("mq_close90 failed");
 		exit(2);
 	}

@@ -34,3 +34,5 @@ consumer
 producer
 consumer.o
 producer.o
+consume
+produce

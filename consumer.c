@@ -14,10 +14,10 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
+#include "common.h"
 
-int main(int argc, char **argv) {
-
-	//lets try to open the queue in the consumer.
+int main(int argc, char **argv)
+{
 
 	mode_t mode = S_IRUSR | S_IWUSR;
 	struct mq_attr queue_attributes;
@@ -25,7 +25,6 @@ int main(int argc, char **argv) {
 	int queue_size = atoi(argv[2]);
 	int messages_to_consume = atoi(argv[1]);
 
-	char * queue_name = "/mailbox_ece254_ryo_ap2";
 
 	queue_attributes.mq_maxmsg = queue_size;
 	queue_attributes.mq_msgsize = sizeof(int);
@@ -39,13 +38,10 @@ int main(int argc, char **argv) {
 		printf("there was an error opening the queue in the consumer");
 		printf("the error is %s \n", strerror(errno));
 		return 1;
-	} else {
-
-		//printf("queue was opened in consumer\n");
 	}
 
-	int counter;
-	for (counter = 0; counter < messages_to_consume; ++counter) {
+	int i;
+	for (i = 0; i < messages_to_consume; ++i) {
 
 		int i;
 		if (mq_receive(qdes, (char*) &i, sizeof(int), 0) == -1) {
@@ -57,8 +53,6 @@ int main(int argc, char **argv) {
 
 		}
 	}
-
-//printf("consumer has consumed all msgs");
 
 	if (mq_close(qdes) == -1) {
 		perror("mq_close90 failed");

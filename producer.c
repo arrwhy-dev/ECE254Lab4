@@ -15,7 +15,14 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <sys/time.h>
-#include "producer.h"
+#include "common.h"
+
+//function prototypes for helped functions.
+double get_time_in_seconds();
+int wait_on_child(double time_before_fork, double time_after_fork);
+int detect_user_error(int, char**);
+void produce_and_send_elements (int,mqd_t);
+int produce_element();
 
 int main(int argc, char **argv) {
 
@@ -24,15 +31,12 @@ int main(int argc, char **argv) {
 		return 0;
 	}
 
-	struct timeval tv;
-
 	int process_count = atoi(argv[1]);
 	int queue_size = atoi(argv[2]);
 
 	mode_t mode = S_IRUSR | S_IWUSR;
 
 	struct mq_attr queue_attributes;
-	char * queue_name = "/mailbox_ece254_ryo_ap2";
 
 	queue_attributes.mq_maxmsg = queue_size;
 	queue_attributes.mq_msgsize = sizeof(int);
@@ -40,98 +44,105 @@ int main(int argc, char **argv) {
 
 	mqd_t queue_descriptor;
 
-	//open the message queue
 	queue_descriptor = mq_open(queue_name, O_RDWR | O_CREAT, mode,
 			&queue_attributes);
 
 	if (queue_descriptor == -1) {
 		printf("there was an error making the queue");
 		return 1;
-	} else {
-		//printf("queue was opened\n");
 	}
 
 	pid_t child_pid;
-
-	gettimeofday(&tv, NULL);
-	double t1 = tv.tv_sec + tv.tv_usec / 1000000.0;
-	printf("the value of t1 is %f the tv sec is ", t1);
+	double time_before_fork = get_time_in_seconds();
+	double time_afer_fork;
 
 	child_pid = fork();
-	double t2;
+
 	if (child_pid != 0) {
-		//printf("printing from the parent\n");
+
+		time_afer_fork = get_time_in_seconds();
 		srand(time(0));
 
-		int counter;
-		for (counter = 0; counter < process_count; ++counter) {
-			int i = (rand() % 80);
+		produce_and_send_elements(process_count,queue_descriptor);
 
-			gettimeofday(&tv, NULL);
-			t2 = tv.tv_sec + tv.tv_usec / 1000000.0;
 
-			if (mq_send(queue_descriptor, (char*) &i, sizeof(int), 0) == -1) {
-				perror("send operation failed");
-			} else {
-				//printf("sent value of %i", i);
-			}
-		}
+} else {
 
-	} else {
+	execv("./consumer", argv);
+	//We only reach this point if the consumer failed to properly exec.
+	printf("error which exec'ing the consumer");
+}
 
-		execv("./consumer", argv);
+wait_on_child(time_before_fork, time_afer_fork);
 
-		printf("error making the consumer");
-	}
+if (mq_close(queue_descriptor) == -1) {
+	perror("mq_close failed");
+	exit(2);
+}
 
-	//printf("parent going to enter wait");
+if (mq_unlink(queue_name) != 0) {
+	perror("mq_unlink failed");
+	exit(3);
+}
 
-	int child_status;
-	wait(&child_status);
-
-	if (WIFEXITED(child_status)) {
-		//printf("the child prcess exited normally, with exit cod %d\n",
-		//	WEXITSTATUS(child_status));
-
-		gettimeofday(&tv, NULL);
-		double t3 = tv.tv_sec + tv.tv_usec / 1000000.0;
-
-		//printf("value of t1 is %d\n",t1);
-		//	printf("value of t2 is %d\n",t2);
-		//printf("value of t2 is %d\n",t3);
-		//double init_time = t2 - t1;
-		//double transmission_time = t3 - t2;
-
-		//printf("Time to initialize system: %d seconds\n", t2 - t1);
-		//printf("Time to transmit data: %d seconds\n", t3 - t2);
-
-	} else {
-		printf("child process exited abnormally \n");
-		return 1;
-	}
-
-	if (mq_close(queue_descriptor) == -1) {
-		perror("mq_close failed");
-		exit(2);
-	}
-
-	if (mq_unlink(queue_name) != 0) {
-		perror("mq_unlink failed");
-		exit(3);
-	}
-
-	return 0;
+return 0;
 
 }
 
 int detect_user_error(int argc, char* argv[]) {
 
-	if (argc < 3) {
+if (argc < 3) {
 
-		return 1;
+	return 1;
+}
+
+return 0;
+
+}
+
+//produce a random number
+int produce_element() {
+
+return ((rand() % 80));
+}
+
+void produce_and_send_elements(int process_count,mqd_t  queue_descriptor) {
+int i;
+for (i = 0; i < process_count; ++i) {
+
+	int element = produce_element();
+
+	if (mq_send(queue_descriptor, (char*) &element, sizeof(int), 0) == -1) {
+		perror("send operation failed");
 	}
+}
 
+}
+
+int wait_on_child(double time_before_fork, double time_after_fork) {
+int child_status;
+wait(&child_status);
+
+if (WIFEXITED(child_status)) {
+
+	double time_after_last_consumed = get_time_in_seconds();
+
+	printf("Time to initialize system: %f seconds\n",
+			time_after_fork - time_before_fork);
+	printf("Time to transmit data: %f seconds\n",
+			time_after_last_consumed - time_after_fork);
 	return 0;
+
+} else {
+	printf("child process exited abnormally \n");
+	return 1;
+}
+
+}
+double get_time_in_seconds() {
+struct timeval tv;
+gettimeofday(&tv, NULL);
+return (tv.tv_sec + tv.tv_usec / 1000000.0);
 
 }
 

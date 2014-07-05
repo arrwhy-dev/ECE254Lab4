@@ -39,24 +39,22 @@ int main(int argc, char **argv) {
 	}
 
 	int i;
-	for (i = 0; i < messages_to_consume; ++i) {
+	for (i = 1; i <= messages_to_consume; ++i) {
+		int message;
 
-		int msg_to_receive;
-		if (mq_receive(queue_descriptor, (char*) &msg_to_receive, sizeof(int),
+		if (mq_receive(queue_descriptor, (char*) &message, sizeof(int),
 				0) == -1) {
-
-			printf("failed to recieve the msg\n");
-			perror("error retrieveing from the queue");
+			printf("failed to receive message %s \n", strerror(errno));
 			return 1;
 
 		} else {
-			printf("%i is consumed\n", msg_to_receive);
+			printf("%i is consumed\n", message);
 
 		}
 	}
 
 	if (mq_close(queue_descriptor) == -1) {
-		perror("mq_close90 failed");
+		perror("mq_close failed");
 		exit(2);
 	}
 

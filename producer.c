@@ -132,9 +132,9 @@ int wait_on_child(double time_before_fork, double time_after_fork) {
 
 		double time_after_last_consumed = get_time_in_seconds();
 
-		printf("Time to initialize system: %f seconds\n",
+		printf("time to initialize system: %f seconds\n",
 				time_after_fork - time_before_fork);
-		printf("Time to transmit data: %f seconds\n",
+		printf("time to transmit data: %f seconds\n",
 				time_after_last_consumed - time_after_fork);
 		return 0;
 

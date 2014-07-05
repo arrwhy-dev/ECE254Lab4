@@ -20,10 +20,10 @@
 //function prototypes for helped functions.
 double get_time_in_seconds();
 int wait_on_child(double time_before_fork, double time_after_fork);
-void produce_and_send_elements(int, mqd_t);
-int produce_element();
 int process_arguments(int, char**, int *, int *);
 int spawn_consumer(char*, char **);
+void produce_and_send_elements(int, mqd_t);
+int produce_element();
 
 int main(int argc, char **argv) {
 
@@ -36,8 +36,9 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
-	//create queue attrivutes
+	//create queue attributes
 	struct mq_attr queue_attributes;
+
 	queue_attributes.mq_maxmsg = queue_size;
 	queue_attributes.mq_msgsize = sizeof(int);
 	queue_attributes.mq_flags = 0;
@@ -54,7 +55,6 @@ int main(int argc, char **argv) {
 		printf("there was an error creating the queue");
 		return 1;
 	}
-
 	//determine time before fork
 	double time_before_fork = get_time_in_seconds();
 	spawn_consumer("consumer", argv);
@@ -123,6 +123,7 @@ int produce_element() {
 
 	return ((rand() % 80));
 }
+
 
 void produce_and_send_elements(int process_count, mqd_t queue_descriptor) {
 	int i;

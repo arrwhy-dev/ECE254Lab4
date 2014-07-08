@@ -56,9 +56,9 @@ int main(int argc, char **argv) {
 
 	if (spawn_consumer("consumer", argv, queue_descriptor, &time_before_fork)
 			!= -1) {
-		double time_afer_fork = get_time_in_seconds();
+		double time_before_first_int = get_time_in_seconds();
 		produce_and_send_elements(process_count, queue_descriptor);
-		wait_on_child(time_before_fork, time_afer_fork);
+		wait_on_child(time_before_fork, time_before_first_int);
 	}
 
 	//Close and mark the queue for deletion

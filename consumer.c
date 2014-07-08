@@ -29,9 +29,11 @@ int main(int argc, char **argv) {
 	mqd_t queue_descriptor;
 	mode_t permissions = S_IRUSR | S_IWUSR;
 
+	//attempt to open the queue
 	queue_descriptor = mq_open(queue_name, O_RDONLY, permissions,
 			&queue_attributes);
 
+	//error checking on the queue
 	if (queue_descriptor == -1) {
 		printf("there was an error opening the queue in the consumer");
 		printf("the error is %s \n", strerror(errno));
@@ -48,6 +50,8 @@ int main(int argc, char **argv) {
 			return 1;
 
 		} else {
+			//Note that this printf causes an IO wait and slows down
+			//the timing results.
 			printf("%i is consumed\n", message);
 
 		}

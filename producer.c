@@ -25,10 +25,10 @@
 int main(int argc, char **argv) {
 
 	int queue_size;
-	int process_count;
+	int production_count;
 
 	//check if the arguments are valid if so set them
-	if (process_arguments(argc, argv, &queue_size, &process_count)) {
+	if (process_arguments(argc, argv, &queue_size, &production_count)) {
 		printf("Invalid arguments\n");
 		return 1;
 	}
@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
 	queue_descriptor = mq_open(queue_name, O_RDWR | O_CREAT, permissions,
 			&queue_attributes);
 
-	//check if the queue was opened
+	//check if the queue couldn't be opened
 	if (queue_descriptor == -1) {
 		printf("error creating the queue %s\n", strerror(errno));
 		return 1;
@@ -54,10 +54,15 @@ int main(int argc, char **argv) {
 
 	double time_before_fork;
 
+	//attempt to spawn consumer and set the time before forking
+	//proceed only if the forking is successful
 	if (spawn_consumer("consumer", argv, queue_descriptor, &time_before_fork)
 			!= -1) {
 		double time_before_first_int = get_time_in_seconds();
-		produce_and_send_elements(process_count, queue_descriptor);
+
+		produce_and_send_elements(production_count, queue_descriptor);
+
+		//wait for the consumer to consume all the elements.
 		wait_on_child(time_before_fork, time_before_first_int);
 	}
 
@@ -66,7 +71,7 @@ int main(int argc, char **argv) {
 		perror("mq_close failed");
 		exit(2);
 	}
-
+	//mark queue for deletion.
 	if (mq_unlink(queue_name) != 0) {
 		perror("mq_unlink failed");
 		exit(3);
@@ -75,16 +80,17 @@ int main(int argc, char **argv) {
 	return 0;
 
 }
+
 int process_arguments(int argc, char* argv[], int * queue_size,
-		int * proc_count) {
+		int * production_count) {
 
 	if (argc < 3) {
 		return 1;
 	} else {
-		*proc_count = atoi(argv[1]);
+		*production_count = atoi(argv[1]);
 		*queue_size = atoi(argv[2]);
 
-		return ((*proc_count <= 0 || *queue_size <= 0)) ? 1 : 0;
+		return ((*production_count <= 0 || *queue_size <= 0)) ? 1 : 0;
 	}
 
 }
@@ -136,9 +142,9 @@ int wait_on_child(double time_before_fork, double time_after_fork) {
 
 		double time_after_last_consumed = get_time_in_seconds();
 
-		printf("time to initialize system: %f seconds\n",
+		printf("Time to initialize system: %f seconds\n",
 				time_after_fork - time_before_fork);
-		printf("time to transmit data: %f seconds\n",
+		printf("Time to transmit data: %f seconds\n",
 				time_after_last_consumed - time_after_fork);
 		return 0;
 

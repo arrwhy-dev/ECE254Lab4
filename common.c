@@ -6,6 +6,8 @@
  * University of Waterloo Computer Engineering
  * Spring 2014
  *
+ * Implementation of common.h
+ *
  */
 
 #include <mqueue.h>

@@ -15,10 +15,28 @@
 #ifndef PRODUCER_H_
 #define PRODUCER_H_
 
+
+//This method provides a convenient way to get the current time in seconds
 double get_time_in_seconds();
+
+//this method causes the consumer to wait on the child and
+//once the child process is down waiting prints the initialization and
+//data transmission times.
 int wait_on_child(double time_before_fork, double time_after_fork);
+
+
+//Provider error checking on the command line arguments,
+// if they are invalid -1 is return. The last two parameters
+//are pointers to queue size and process count, these are set
+//if valid
 int process_arguments(int, char**, int *, int *);
+
+//spawns the child process and sets the time before forking,
+//which is the last parameter.
 int spawn_consumer(char*, char **,mqd_t ,double *);
+
+//The main part of the producer code
+//this creates elements and sends them to the msg queue.
 void produce_and_send_elements(int, mqd_t);
 
 #endif /* PRODUCER_H_ */

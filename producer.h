@@ -18,7 +18,7 @@
 double get_time_in_seconds();
 int wait_on_child(double time_before_fork, double time_after_fork);
 int process_arguments(int, char**, int *, int *);
-int spawn_consumer(char*, char **,mqd_t );
+int spawn_consumer(char*, char **,mqd_t ,double *);
 void produce_and_send_elements(int, mqd_t);
 
 #endif /* PRODUCER_H_ */

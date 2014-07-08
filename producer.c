@@ -52,9 +52,10 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
-	double time_before_fork = get_time_in_seconds();
+	double time_before_fork;
 
-	if (spawn_consumer("consumer", argv, queue_descriptor) != -1) {
+	if (spawn_consumer("consumer", argv, queue_descriptor, &time_before_fork)
+			!= -1) {
 		double time_afer_fork = get_time_in_seconds();
 		produce_and_send_elements(process_count, queue_descriptor);
 		wait_on_child(time_before_fork, time_afer_fork);
@@ -88,11 +89,14 @@ int process_arguments(int argc, char* argv[], int * queue_size,
 
 }
 
-int spawn_consumer(char* program, char **arg_list, mqd_t queue_descriptor) {
+int spawn_consumer(char* program, char **arg_list, mqd_t queue_descriptor,
+		double * fork_time) {
 
 	arg_list[0] = program;
-
 	pid_t child_pid;
+
+	//get the time before fork.
+	*fork_time = get_time_in_seconds();
 	child_pid = fork();
 
 	if (child_pid > 0) {

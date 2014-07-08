@@ -16,6 +16,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <sys/time.h>
+#include <time.h>
 #include <string.h>
 
 //Include helper functions and global constants

@@ -1,0 +1,10 @@
+How to build source code:
+
+Inorder to build follow the steps below in order:
+
+1) gcc -o consume consumer.c common.c -lrt
+2) gcc -o produce producer.c common.c -lrt
+3) ./produce N B 
+In step 3 N is the number of ints to produce and B is the size of the queue.
+
+
